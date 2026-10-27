@@ -1,0 +1,10 @@
+{
+  "name": "spam-detector",
+  "version": "1.0.0",
+  "description": "AI 기반 스팸 문자 판독기 (나이브 베이즈, 순수 JS)",
+  "scripts": {
+    "train": "node train.js",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

@@ -17,13 +17,15 @@
 ## 실행
 
 ```bash
-node train.js        # 재학습 (model.json 갱신)
-node --test          # 테스트
-python serve.py      # 로컬 서버 실행 + 브라우저 자동 열기 (Windows: py serve.py)
+node train.js                  # 재학습 (model.json 갱신)
+node --test                    # 테스트
+python -m http.server 8000     # 로컬 서버 실행 (Windows: py -m http.server 8000)
 ```
 
-`index.html` 을 그냥 더블클릭하면 `fetch` 가 막힐 수 있으니 로컬 서버로 여세요.
-(VS Code Live Server, `python -m http.server` 등)
+서버를 켠 뒤 브라우저에서 <http://localhost:8000/index.html> 로 접속합니다. (종료: Ctrl+C)
+
+`index.html` 을 더블클릭해서 열면 `model.json` 을 불러오지 못하므로 반드시 서버로 여세요.
+브라우저를 자동으로 열고 싶으면 `python serve.py` 를 써도 됩니다.
 
 ## DevOps 흐름
 
@@ -36,3 +38,4 @@ python serve.py      # 로컬 서버 실행 + 브라우저 자동 열기 (Window
 ## 버전
 
 - v1.0.0: 학습 데이터 40개, 스팸/정상 판정 + 확률 표시
+- v1.1.0: 정상 서비스 알림("구매 안내" 등)이 스팸으로 오분류되는 문제 발견 → 학습 데이터 62개로 확장, 회귀 테스트 추가

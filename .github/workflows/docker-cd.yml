@@ -1,4 +1,3 @@
-
 name: Docker CD
 
 on:
@@ -37,18 +36,9 @@ jobs:
             -p 127.0.0.1:8000:80 \
             "${{ secrets.DOCKERHUB_USERNAME }}/spam-detector-lab:latest"
 
-      - name: Verify deployment
+      - name: 배포 검증 리포트
         run: |
-          for i in {1..15}; do
-            if curl -fsS http://127.0.0.1:8000/; then
-              echo "Deployment successful"
-              exit 0
-            fi
-            sleep 2
-          done
-
-       - name: 배포 검증 리포트
-        run: |
+          sleep 3
           ok=0; fail=0
           for i in $(seq 1 20); do
             code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/ || echo 000)
@@ -60,6 +50,7 @@ jobs:
           echo "Requests: $((ok+fail)) total; $ok successful; $fail failed"
           echo "Revision before: $BEFORE_REV"
           echo "Revision after:  $AFTER_REV"
-          [ "$fail" -eq 0 ]
-          docker logs spam-detector
-          exit 1
+          if [ "$fail" -ne 0 ]; then
+            docker logs spam-detector
+            exit 1
+          fi

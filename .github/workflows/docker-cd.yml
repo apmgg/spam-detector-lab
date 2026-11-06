@@ -1,0 +1,47 @@
+
+name: Docker CD
+
+on:
+  workflow_run:
+    workflows: ["Docker CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pull latest image
+        run: docker pull "${{ secrets.DOCKERHUB_USERNAME }}/spam-detector-lab:latest"
+
+      - name: Replace container
+        run: |
+          docker rm -f spam-detector || true
+          docker run -d \
+            --name spam-detector \
+            --restart unless-stopped \
+            -p 127.0.0.1:8000:80 \
+            "${{ secrets.DOCKERHUB_USERNAME }}/spam-detector-lab:latest"
+
+      - name: Verify deployment
+        run: |
+          for i in {1..15}; do
+            if curl -fsS http://127.0.0.1:8000/; then
+              echo "Deployment successful"
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs spam-detector
+          exit 1

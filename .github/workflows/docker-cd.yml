@@ -22,6 +22,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Before 상태 기록
+        run: echo "BEFORE_REV=$(curl -fsS http://127.0.0.1:8000/version.txt || echo none)" >> $GITHUB_ENV
+
       - name: Pull latest image
         run: docker pull "${{ secrets.DOCKERHUB_USERNAME }}/spam-detector-lab:latest"
 
@@ -43,5 +46,20 @@ jobs:
             fi
             sleep 2
           done
+
+       - name: 배포 검증 리포트
+        run: |
+          ok=0; fail=0
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/ || echo 000)
+            if [ "$code" = "200" ]; then ok=$((ok+1)); else fail=$((fail+1)); fi
+            sleep 1
+          done
+          AFTER_REV=$(curl -fsS http://127.0.0.1:8000/version.txt || echo none)
+          echo "Stable URL: http://127.0.0.1:8000/"
+          echo "Requests: $((ok+fail)) total; $ok successful; $fail failed"
+          echo "Revision before: $BEFORE_REV"
+          echo "Revision after:  $AFTER_REV"
+          [ "$fail" -eq 0 ]
           docker logs spam-detector
           exit 1
